@@ -1,38 +1,39 @@
-import PropTypes from 'prop-types';
-import style from './ContactList.module.css';
+import { useSelector, useDispatch } from 'react-redux';
 
-export const ContactList = ({ contacts, children, deleteContact }) => {
-    return (
-      <div className={style.contacts}>
-        <h2>Contacts</h2>
-        {children}
-        <ul className={style.contactsContainer}>
-          {contacts.map(({ id, name, number }) => (
-            <li className={style.contactsItem} key={id}>
-              <p className={style.contactsName}>{name}</p>
-              <p className={style.contactsNumber}> {number}</p>
-              <button
-                onClick={() => {
-                  deleteContact(id);
-                }}
-                className={style.button}
-              >
-                Delete
-              </button>
-            </li>
-          ))}
-        </ul>
-      </div>
-    );
+import { getFilterValue, getContacts } from '../../redux/selector';
+import { deleteContact } from '../../redux/actions';
+
+const ContactList = () => {
+  const contacts = useSelector(getContacts);
+  const filter = useSelector(getFilterValue);
+  const dispatch = useDispatch();
+
+  const filteredContacts = contacts.filter(
+    contact =>
+      contact.name.toLowerCase().includes(filter.toLowerCase()) ||
+      contact.number.replace(/-|\s/g, '').includes(filter.replace(/-|\s/g, ''))
+  );
+
+  const handleDelete = idToDelete => {
+    dispatch(deleteContact(idToDelete));
   };
-  
-  ContactList.propTypes = {
-    contacts: PropTypes.arrayOf(
-      PropTypes.shape({
-        id: PropTypes.string.isRequired,
-        name: PropTypes.string.isRequired,
-        number: PropTypes.string.isRequired,
-      })
-    ),
-    deleteContact: PropTypes.func,
-  };
+
+  return filteredContacts.length > 0 ? (
+    <ul>
+      {filteredContacts.map(({ id, name, number }) => {
+        return (
+          <li key={id}>
+            {name}: {number}
+            <button type="submit" onClick={() => handleDelete(id)}>
+              Delete
+            </button>
+          </li>
+        );
+      })}
+    </ul>
+  ) : (
+    <p>No contacts.</p>
+  );
+};
+
+export default ContactList;

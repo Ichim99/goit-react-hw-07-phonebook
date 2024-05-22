@@ -1,51 +1,67 @@
-import React from 'react';
-import PropTypes from 'prop-types';
-import style from './ContactForm.module.css';
 import { nanoid } from 'nanoid';
+import { useDispatch, useSelector } from 'react-redux';
+import { getContacts } from '../../redux/selector';
+import { addNewContact } from '../../redux/actions';
 
+const ContactForm = () => {
+  const contacts = useSelector(getContacts);
+  const dispatch = useDispatch();
 
+  const addContact = e => {
+    e.preventDefault();
+    let nameOntheList = false;
+    const form = e.target;
+    const name = e.target.name.value;
+    const number = e.target.number.value;
+    const toLowerCase = name.toLowerCase();
 
-export const ContactForm = ({ addContact }) => {
-    const handleFormSubmit = event => {
-      event.preventDefault();
-      const name = event.target.name.value;
-      const number = event.target.number.value;
-      addContact({ id: nanoid(), name, number });
-      event.target.reset();
+    const newContact = {
+      id: nanoid(),
+      name: name,
+      number: number,
     };
-  
-    return (
-      <div className={style.container}> 
-        <h1 className={style.title}>Phonebook</h1>
-        <form className={style.containerInput} onSubmit={handleFormSubmit}>
-          <label>Name
-            <input
-              type="text"
-              name="name"
-              className={style.input}
-              pattern="^[a-zA-Z]+(([' -][a-zA-Z ])?[a-zA-Z]*)*$"
-              title="Name may contain only letters, apostrophe, dash and spaces. For example Adrian, Jacob Mercer, Charles de Batz de Castelmore d'Artagnan"
-              required
-            />
-          </label>
-          <label>Number
-            <input
-              type="tel"
-              name="number"
-              className={style.input}
-              pattern="\+?\d{1,4}?[-.\s]?\(?\d{1,3}?\)?[-.\s]?\d{1,4}[-.\s]?\d{1,4}[-.\s]?\d{1,9}"
-              title="Phone number must be digits and can contain spaces, dashes, parentheses and can start with +"
-              required
-            />
-          </label>
-          <button type="submit" className={style.button}>Add Contact</button>
-        </form>
-      </div>
-    );
+
+    contacts.forEach(({ name }) => {
+      if (name.toLowerCase() === toLowerCase) {
+        alert(`${name} is already in contacts`);
+        nameOntheList = true;
+        form.reset();
+      }
+    });
+
+    if (nameOntheList) return;
+
+    dispatch(addNewContact(newContact));
+    form.reset();
   };
-  
-  ContactForm.propTypes = {
-    number: PropTypes.string,
-    name: PropTypes.string,
-    addContact: PropTypes.func.isRequired,
-  };
+  return (
+    <form onSubmit={addContact}>
+      <label htmlFor="name">
+        Name
+        <input
+          autoComplete="off"
+          type="text"
+          name="name"
+          pattern="^[a-zA-Zа-яА-Я]+(([' -][a-zA-Zа-яА-Я ])?[a-zA-Zа-яА-Я]*)*$"
+          title="Name may contain only letters, apostrophe, dash and spaces. For example Adrian, Jacob Mercer, Charles de Batz de Castelmore d'Artagnan"
+          placeholder="e.g. John Doe"
+          required
+        />
+      </label>
+      <label htmlFor="number">
+        Number
+        <input
+          autoComplete="off"
+          type="tel"
+          name="number"
+          pattern="\+?\d{1,4}?[-.\s]?\(?\d{1,3}?\)?[-.\s]?\d{1,4}[-.\s]?\d{1,4}[-.\s]?\d{1,9}"
+          title="Phone number must be digits and can contain spaces, dashes, parentheses and can start with +"
+          placeholder="e.g. 123-456-789"
+          required
+        />
+      </label>
+      <button type="submit">Add contact</button>
+    </form>
+  );
+};
+export default ContactForm;
